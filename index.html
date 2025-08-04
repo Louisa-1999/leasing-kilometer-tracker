@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Leasing‑Kilometer Tracker</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Konfiguriere Tailwind, damit der Dark‑Mode per Klasse gesteuert wird
+      tailwind.config = {
+        darkMode: 'class',
+      };
+    </script>
     <style>
         /*
           Ein schlichtes und responsives Layout.  Die Seite ist zweispaltig
@@ -213,14 +221,23 @@
         }
     </style>
 </head>
-<body>
-    <nav>
-        <span>Kilometerrechner &amp; Planung</span>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200">
+    <!-- Navigationsbereich mit Dark-Mode-Toggle -->
+    <nav class="flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <span class="text-blue-600 dark:text-blue-400 font-bold">Kilometerrechner&nbsp;&amp;&nbsp;Planung</span>
+        <!-- Dark‑Mode‑Schalter: beim Umschalten wird die Klasse 'dark' auf dem HTML‑Element gesetzt -->
+        <label for="darkToggle" class="flex items-center cursor-pointer select-none">
+            <input type="checkbox" id="darkToggle" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:bg-blue-600 relative">
+                <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></span>
+            </div>
+            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Dark&nbsp;Mode</span>
+        </label>
     </nav>
-    <div class="container">
-        <div class="flex-container">
+    <div class="container mx-auto max-w-7xl px-4 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
             <!-- Linke Spalte: Eingaben zur Berechnung -->
-            <div class="column" id="calculatorColumn">
+            <div class="column w-full lg:w-1/2" id="calculatorColumn">
                 <h1>Leasing‑Kilometer Tracker</h1>
                 <p class="intro">
                     Dieses Tool hilft dir, deinen Kilometerverbrauch basierend auf deinem
@@ -249,11 +266,13 @@
                 <input type="number" id="leaseDuration" min="1" placeholder="z.&nbsp;B.&nbsp;48" />
                 <label for="monthStartOdometer">Kilometerstand am Monatsanfang (optional)</label>
                 <input type="number" id="monthStartOdometer" placeholder="Kilometerstand zu Beginn des Monats" min="0" />
-                <button id="calculate">Berechnen</button>
+                <button id="calculate" class="mt-6 bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-2 rounded">Berechnen</button>
+
+                <!-- Ergebnisse werden direkt unter den Eingaben angezeigt -->
+                <div id="results" class="result mt-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded"></div>
             </div>
-            <!-- Rechte Spalte: Ergebnisse, Planung und Diagramm -->
-            <div class="column" id="planningColumn">
-                <div id="results" class="result"></div>
+            <!-- Rechte Spalte: Planung und Diagramm -->
+            <div class="column w-full lg:w-1/2" id="planningColumn">
                 <div id="planningSection" style="display: none;">
                     <h2>Fahrten planen</h2>
                     <p>Hier kannst du Strecken hinzufügen, die du im verbleibenden Monat fahren möchtest – zum Beispiel die 150 km lange Fahrt zur Arbeit oder die 400 km zu deiner Mutter. Das Tool errechnet automatisch, ob dein aktuelles Monatsbudget dafür ausreicht.</p>
@@ -782,6 +801,14 @@
             el.addEventListener('input', maybeAutoCalculate);
             el.addEventListener('change', maybeAutoCalculate);
         });
+
+        // Dark‑Mode‑Toggle initialisieren: aktiviert den Dark‑Mode, wenn Schalter gesetzt ist
+        const darkToggle = document.getElementById('darkToggle');
+        if (darkToggle) {
+            darkToggle.addEventListener('change', function (e) {
+                document.documentElement.classList.toggle('dark', e.target.checked);
+            });
+        }
 
         // Standardwerte bei Laden der Seite setzen und gespeicherte Daten abrufen
         (function() {
