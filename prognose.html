@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Was‑wäre‑wenn‑Prognose</title>
+    <style>
+        /*
+          Diese Seite erlaubt es dir, langfristige Szenarien zu simulieren.  Du kannst
+          eingeben, wie viele Fahrten du pro Woche zur Arbeit oder zum Einkaufen
+          unternimmst, und das Tool rechnet aus, ob dein Jahresbudget ausreicht und
+          wie viele Wochen du mit diesem Muster unterwegs sein kannst.  Das Design
+          orientiert sich an den anderen Seiten, um ein einheitliches Erscheinungsbild
+          zu schaffen.
+        */
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
+                "Open Sans", "Helvetica Neue", sans-serif;
+            background: #eef4f8;
+            margin: 0;
+            color: #333;
+        }
+        nav {
+            background: #f8fafc;
+            border-bottom: 1px solid #e6edf4;
+            padding: 12px 24px;
+            display: flex;
+            gap: 16px;
+        }
+        nav a {
+            text-decoration: none;
+            color: #0366d6;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 32px;
+            background: white;
+            border: 1px solid #e6edf4;
+            border-radius: 8px;
+        }
+        h1 {
+            font-size: 26px;
+            margin-bottom: 20px;
+        }
+        p.intro {
+            font-size: 15px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        label {
+            display: block;
+            margin-top: 16px;
+            font-weight: 600;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #0366d6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #024b9a;
+        }
+        .result {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f8fafc;
+            border: 1px solid #e6edf4;
+            border-radius: 4px;
+        }
+        .result p {
+            margin: 6px 0;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        .success {
+            color: #2d9c5b;
+        }
+        .warning {
+            color: #d9534f;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Kilometerrechner</a>
+        <a href="planung.html">Planung</a>
+        <a href="prognose.html">Prognose</a>
+    </nav>
+    <div class="container">
+        <h1>Was‑wäre‑wenn‑Prognose</h1>
+        <p class="intro">
+            Möchtest du wissen, wie sich regelmäßige Fahrten auf dein Jahresbudget auswirken? Gib einfach an, wie weit
+            deine Fahrten zur Arbeit und zum Einkaufen sind und wie oft du sie pro Woche unternimmst. Das Tool berechnet,
+            ob dein verbleibendes Jahresbudget ausreicht und wie lange du dieses Fahrmuster beibehalten kannst.
+        </p>
+        <div id="budgetInfo" class="result" style="display:none;"></div>
+        <h2 style="font-size:20px; margin-top:32px;">Regelmäßige Fahrten eingeben</h2>
+        <label for="workDistance">Strecke zur Arbeit pro Fahrt (Hin- und Rückweg, km)</label>
+        <input type="number" id="workDistance" min="0" placeholder="z.&nbsp;B.&nbsp;150" />
+        <label for="workCount">Fahrten zur Arbeit pro Woche</label>
+        <input type="number" id="workCount" min="0" value="1" />
+        <label for="shopDistance">Strecke zum Einkaufen pro Fahrt (Hin- und Rückweg, km)</label>
+        <input type="number" id="shopDistance" min="0" placeholder="z.&nbsp;B.&nbsp;30" />
+        <label for="shopCount">Fahrten zum Einkaufen pro Woche</label>
+        <input type="number" id="shopCount" min="0" value="1" />
+        <button id="calculatePrognosis">Berechnen</button>
+        <div id="prognosisResults" class="result"></div>
+    </div>
+
+    <script>
+        // Daten aus dem Kilometerrechner laden
+        function loadStored() {
+            try {
+                const saved = localStorage.getItem('leasingTrackerData');
+                if (saved) {
+                    return JSON.parse(saved);
+                }
+            } catch (e) {
+                // ignore
+            }
+            return null;
+        }
+
+        // Zeigt die verbleibenden Budgets an
+        function displayBudget() {
+            const info = document.getElementById('budgetInfo');
+            const stored = loadStored();
+            info.style.display = 'block';
+            if (stored) {
+                let html = '';
+                if (!isNaN(stored.remainingYearKm)) {
+                    html += '<p><strong>Verbleibendes Jahresbudget:</strong> ' + stored.remainingYearKm.toFixed(0) + '&nbsp;km</p>';
+                }
+                if (!isNaN(stored.remainingMonthKm)) {
+                    html += '<p><strong>Verbleibendes Monatsbudget:</strong> ' + stored.remainingMonthKm.toFixed(0) + '&nbsp;km</p>';
+                }
+                if (html === '') {
+                    html = '<p><em>Keine Budgetdaten gefunden. Bitte führe zuerst eine Berechnung im Kilometerrechner durch.</em></p>';
+                }
+                info.innerHTML = html;
+            } else {
+                info.innerHTML = '<p><em>Keine Budgetdaten gefunden. Bitte führe zuerst eine Berechnung im Kilometerrechner durch.</em></p>';
+            }
+        }
+
+        // Berechnet die Prognose basierend auf wöchentlichen Fahrten
+        function calculatePrognosis() {
+            const workDist = parseFloat(document.getElementById('workDistance').value);
+            const workCount = parseInt(document.getElementById('workCount').value, 10);
+            const shopDist = parseFloat(document.getElementById('shopDistance').value);
+            const shopCount = parseInt(document.getElementById('shopCount').value, 10);
+            // Prüfen auf gültige Eingaben (negative Zahlen werden nicht akzeptiert)
+            if (
+                (isNaN(workDist) || workDist < 0) ||
+                (isNaN(workCount) || workCount < 0) ||
+                (isNaN(shopDist) || shopDist < 0) ||
+                (isNaN(shopCount) || shopCount < 0)
+            ) {
+                alert('Bitte gib gültige Werte für alle Felder ein.');
+                return;
+            }
+
+            const stored = loadStored();
+            const resultsDiv = document.getElementById('prognosisResults');
+            if (!stored || isNaN(stored.remainingYearKm) || !stored.startDate || !stored.currentDate) {
+                resultsDiv.innerHTML = '<p><em>Es fehlen erforderliche Daten. Bitte führe zuerst eine Berechnung im Kilometerrechner durch.</em></p>';
+                return;
+            }
+
+            // Errechne das wöchentliche Kilometerpensum
+            const weeklyTotal = (workDist * workCount) + (shopDist * shopCount);
+            // Wenn keine Fahrten angegeben sind, ist die Prognose trivial
+            if (weeklyTotal <= 0) {
+                resultsDiv.innerHTML = '<p>Mit 0&nbsp;geplanten Kilometern pro Woche bleibt dein restliches Jahresbudget von ' + stored.remainingYearKm.toFixed(0) + '&nbsp;km unverändert.</p>';
+                return;
+            }
+
+            // Vertragslaufzeit bestimmen: Wir gehen von einem Leasingjahr (365 Tage) aus.  Falls im Vertrag
+            // Schaltjahre eine Rolle spielen, ist die Abweichung gering.
+            const startDate = new Date(stored.startDate);
+            const contractEnd = new Date(startDate);
+            contractEnd.setFullYear(contractEnd.getFullYear() + 1);
+            const currentDate = new Date(stored.currentDate);
+            // Tage und Wochen bis zum Vertragsende
+            const msPerDay = 24 * 60 * 60 * 1000;
+            const daysRemaining = Math.max(0, Math.floor((contractEnd - currentDate) / msPerDay));
+            const weeksRemaining = daysRemaining / 7;
+
+            // Gesamtkilometerbedarf bis zum Ende der Laufzeit mit dem aktuellen Muster
+            const totalRequired = weeklyTotal * weeksRemaining;
+            // Verbleibendes Jahresbudget
+            const remainingYear = stored.remainingYearKm;
+            // Berechne, wie viele Wochen das Budget tatsächlich reicht
+            const weeksPossible = weeklyTotal > 0 ? (remainingYear / weeklyTotal) : Infinity;
+            const monthsPossible = weeksPossible / 4.345; // Durchschnittliche Wochen pro Monat
+
+            let html = '';
+            html += '<p><strong>Geplante Kilometer pro Woche:</strong> ' + weeklyTotal.toFixed(0) + '&nbsp;km</p>';
+            html += '<p><strong>Verbleibende Vertragsdauer:</strong> ' + daysRemaining + '&nbsp;Tage (≈ ' + weeksRemaining.toFixed(1) + '&nbsp;Wochen)</p>';
+            html += '<p><strong>Gesamt benötigte Kilometer bis Vertragsende:</strong> ' + totalRequired.toFixed(0) + '&nbsp;km</p>';
+
+            if (totalRequired <= remainingYear) {
+                const leftover = remainingYear - totalRequired;
+                html += '<p class="success">Mit diesem Fahrmuster bleibst du innerhalb deines Jahresbudgets. Du hättest noch ' + leftover.toFixed(0) + '&nbsp;km übrig.</p>';
+            } else {
+                const deficit = totalRequired - remainingYear;
+                html += '<p class="warning">Mit diesem Fahrmuster würdest du dein Jahresbudget überschreiten. Es fehlen ' + deficit.toFixed(0) + '&nbsp;km.</p>';
+            }
+            html += '<p>Dein Budget reicht bei diesem Fahrmuster für etwa ' + weeksPossible.toFixed(1) + '&nbsp;Wochen (≈ ' + monthsPossible.toFixed(1) + '&nbsp;Monate).</p>';
+            html += '<p>Es verbleiben noch ' + weeksRemaining.toFixed(1) + '&nbsp;Wochen bis zum Ende der Laufzeit.</p>';
+            resultsDiv.innerHTML = html;
+        }
+
+        document.getElementById('calculatePrognosis').addEventListener('click', calculatePrognosis);
+        // Budget beim Laden der Seite anzeigen
+        displayBudget();
+    </script>
+</body>
+</html>
