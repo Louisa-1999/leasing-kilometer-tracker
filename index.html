@@ -304,9 +304,9 @@
                       du die Anzahl auf 1.
                     -->
                     <label for="tripDistance">Streckenlänge außerordentliche Fahrt (km)</label>
-                    <input type="number" id="tripDistance" min="0" placeholder="z. B. 150 oder 400" />
+                    <input type="number" id="tripDistance" min="0" placeholder="z. B. 150 oder 400" class="w-full mt-1 p-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
                     <label for="tripCount">Anzahl dieser Fahrten im Monat</label>
-                    <input type="number" id="tripCount" min="1" placeholder="z. B. 1" />
+                    <input type="number" id="tripCount" min="1" placeholder="z. B. 1" class="w-full mt-1 p-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
                     <button id="addTrip">Hinzufügen</button>
                     <div id="tripListContainer" style="margin-top: 24px;"></div>
                     <div id="planningSummary" style="margin-top: 24px;"></div>
@@ -317,9 +317,9 @@
                         Streckenlänge einer einzelnen Fahrt an und wie oft sie im aktuellen Monat
                         stattfinden wird (zum Beispiel 4 oder 2 mal).</p>
                     <label for="regularDistance">Streckenlänge pro Fahrt (km)</label>
-                    <input type="number" id="regularDistance" min="0" placeholder="z. B. 150" />
+                    <input type="number" id="regularDistance" min="0" placeholder="z. B. 150" class="w-full mt-1 p-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
                     <label for="regularCount">Anzahl der Fahrten im Monat</label>
-                    <input type="number" id="regularCount" min="0" value="0" />
+                    <input type="number" id="regularCount" min="0" value="0" class="w-full mt-1 p-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
                     <button id="calculateRegularPlan">Berechnen</button>
                     <div id="regularPlanResults" style="margin-top: 24px;"></div>
                     <!-- Monatliche Planung über die gesamte Vertragslaufzeit -->
@@ -327,7 +327,8 @@
                     <p>Plane dein Kilometerbudget für jeden Monat deiner Leasinglaufzeit. Die Tabelle unten zeigt nur die Monate des aktuell ausgewählten Jahres. Wähle ein Jahr aus und trage für die einzelnen Monate die außerordentlichen Kilometer ein.</p>
                     <!-- Jahresauswahl: wird dynamisch mit den Jahren des Vertrags gefüllt -->
                     <label for="yearSelector">Jahr auswählen:</label>
-                    <select id="yearSelector" style="margin-bottom:12px;"></select>
+                    <!-- Der Jahres‑Dropdown erhält Tailwind‑Klassen, damit er im Dark‑Mode nicht weiß erscheint. -->
+                    <select id="yearSelector" class="w-full mt-1 p-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" style="margin-bottom:12px;"></select>
                     <table id="monthlyPlanTable"></table>
                     <div id="monthlyPlanSummary" style="margin-top: 16px;"></div>
                     <!-- Diagramm -->
@@ -490,7 +491,8 @@
                     html += '<td>' + formatKm(trip.distance) + '</td>';
                     html += '<td>' + trip.count + '</td>';
                     html += '<td>' + formatKm(trip.total) + '</td>';
-                    html += '<td><button style="background:#d9534f; color:#fff; padding:4px 8px; font-size:12px;" onclick="removeTrip(' + index + ')">Entfernen</button></td>';
+                    // Verwende Tailwind‑Klassen für den Entfernen‑Button, damit er im Dark‑Mode konsistent aussieht
+                    html += '<td><button class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-xs rounded" onclick="removeTrip(' + index + ')">Entfernen</button></td>';
                     html += '</tr>';
                 });
                 html += '</tbody></table>';
@@ -707,7 +709,8 @@
                     row.innerHTML =
                         '<td>' + monthName + '</td>' +
                         '<td>' + formatKm(m.allowedKm) + '</td>' +
-                        '<td><input type="number" id="plannedKm-' + index + '" min="0" value="' + (m.plannedKm || '') + '" style="width:80%;" /></td>' +
+                        // Füge Tailwind‑Klassen hinzu, damit die Eingabefelder auch im Dark‑Mode lesbar sind
+                        '<td><input type="number" id="plannedKm-' + index + '" min="0" value="' + (m.plannedKm || '') + '" class="p-1 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" style="width:80%;" /></td>' +
                         '<td id="monthDiff-' + index + '">' + formatKm(m.allowedKm - m.plannedKm - m.regularKm) + '</td>';
                     tbody.appendChild(row);
                 }
@@ -824,8 +827,23 @@
         // Dark‑Mode‑Toggle initialisieren: aktiviert den Dark‑Mode, wenn Schalter gesetzt ist
         const darkToggle = document.getElementById('darkToggle');
         if (darkToggle) {
+            // Beim Laden prüfen, ob der Dark‑Mode in localStorage gespeichert ist
+            try {
+                const darkStored = localStorage.getItem('darkMode');
+                if (darkStored === 'true') {
+                    document.documentElement.classList.add('dark');
+                    darkToggle.checked = true;
+                }
+            } catch (e) {
+                // Zugriff auf localStorage kann im privaten Modus deaktiviert sein
+            }
+            // Ändert den Dark‑Mode und speichert die Auswahl
             darkToggle.addEventListener('change', function (e) {
-                document.documentElement.classList.toggle('dark', e.target.checked);
+                const isDark = e.target.checked;
+                document.documentElement.classList.toggle('dark', isDark);
+                try {
+                    localStorage.setItem('darkMode', isDark ? 'true' : 'false');
+                } catch (err) {}
             });
         }
 
