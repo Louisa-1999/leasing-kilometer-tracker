@@ -146,7 +146,9 @@
             <p style="margin-bottom: 12px;">Hier kannst du Strecken hinzufügen, die du im verbleibenden Monat fahren möchtest. Das Tool errechnet automatisch, ob dein aktuelles Monatsbudget dafür ausreicht.</p>
 
             <label for="tripDistance">Streckenlänge (km)</label>
-            <input type="number" id="tripDistance" min="0" placeholder="z.&nbsp;B.&nbsp;50" />
+            <!-- Die Streckenlänge kann je nach Fahrtziel sehr unterschiedlich sein. Als Beispiel verwenden
+                 wir 150 km, um eine längere Strecke wie den Weg zur Arbeit oder zu den Eltern zu illustrieren. -->
+            <input type="number" id="tripDistance" min="0" placeholder="z.&nbsp;B.&nbsp;150" />
 
             <label for="tripCount">Anzahl der Fahrten</label>
             <input type="number" id="tripCount" min="1" placeholder="z.&nbsp;B.&nbsp;4" />
@@ -363,8 +365,36 @@
         // Knöpfe für Planung verbinden
         document.getElementById('addTrip').addEventListener('click', addTrip);
 
-        // Event Listener zum Berechnen
+        // Event Listener zum Berechnen per Klick
         document.getElementById('calculate').addEventListener('click', calculate);
+
+        // Funktion zum automatischen Berechnen, sobald alle Pflichtfelder ausgefüllt sind
+        function maybeAutoCalculate() {
+            const annualLimitVal = document.getElementById('annualLimit').value;
+            const startDateVal2 = document.getElementById('startDate').value;
+            const startOdoVal = document.getElementById('startOdometer').value;
+            const currentDateVal2 = document.getElementById('currentDate').value;
+            const currentOdoVal = document.getElementById('currentOdometer').value;
+            // Prüfen, ob alle Pflichtfelder vorhanden sind. Auch 0 als Kilometerstand ist erlaubt,
+            // daher reicht eine leere Zeichenkette als Prüfbedingung.
+            if (
+                annualLimitVal &&
+                startDateVal2 &&
+                currentDateVal2 &&
+                startOdoVal !== '' &&
+                currentOdoVal !== ''
+            ) {
+                calculate();
+            }
+        }
+
+        // Event Listener für die automatische Berechnung
+        ['annualLimit', 'startDate', 'startOdometer', 'currentDate', 'currentOdometer', 'monthStartOdometer'].forEach(function(id) {
+            const el = document.getElementById(id);
+            // Bei Änderungen oder Eingaben prüfen wir, ob automatisch berechnet werden kann
+            el.addEventListener('input', maybeAutoCalculate);
+            el.addEventListener('change', maybeAutoCalculate);
+        });
 
         // Standardwerte vorbelegen: aktuelles Datum
         const today = new Date();
@@ -386,6 +416,8 @@
             } catch (e) {
                 // LocalStorage ist möglicherweise nicht verfügbar; Fehler ignorieren.
             }
+            // Nach dem Laden der gespeicherten Daten automatisch berechnen, wenn alle Felder vorhanden sind
+            maybeAutoCalculate();
         })();
     </script>
 </body>
