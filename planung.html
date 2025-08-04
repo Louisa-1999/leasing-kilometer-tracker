@@ -98,50 +98,90 @@
         th {
             border-bottom: 1px solid #ccc;
         }
+
+        /* Zwei-Spalten-Layout: Die flex-container verteilt die Spalten gleichmäßig. Bei schmalen
+           Bildschirmen (unter ~700 px) wird automatisch umgebrochen, sodass die Spalten untereinander
+           stehen. */
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+        }
+        .column {
+            flex: 1 1 45%;
+            min-width: 300px;
+        }
     </style>
 </head>
 <body>
     <nav>
         <a href="index.html">Kilometerrechner</a>
         <a href="planung.html">Planung</a>
-        <a href="prognose.html">Prognose</a>
     </nav>
     <div class="container">
-        <h1>Fahrten planen</h1>
-        <p class="intro">Dieses Modul hilft dir, sowohl einzelne als auch regelmäßige Fahrten zu planen. Die Berechnungen basieren
-            auf den Daten, die du im Kilometerrechner eingegeben hast. Wenn du dort noch keine Berechnung durchgeführt hast,
-            gehe zuerst zum <a href="index.html" style="color:#0366d6; text-decoration:underline;">Kilometerrechner</a>, damit das Monatsbudget ermittelt werden kann.</p>
+        <h1>Planung & Prognose</h1>
+        <p class="intro">
+            Dieses Modul vereint die monatliche Planung und eine langfristige Prognose.  Links kannst du einmalige oder
+            wöchentliche Fahrten für den aktuellen Monat planen.  Rechts lässt sich ein wöchentliches Fahrmuster simulieren,
+            um zu prüfen, ob dein Jahresbudget bis zum Vertragsende reicht.  Bitte führe zunächst eine Berechnung im
+            <a href="index.html" style="color:#0366d6; text-decoration:underline;">Kilometerrechner</a> durch, damit die Budgets
+            ermittelt werden.
+        </p>
 
-        <div id="budgetInfo" class="result" style="display:none;"></div>
+        <!-- Flexcontainer für zwei Spalten: Planung (links) und Prognose (rechts) -->
+        <div class="flex-container">
+            <!-- Linke Spalte: Planung -->
+            <div class="column" id="planningColumn">
+                <h2 style="font-size:20px; margin-top:0;">Monatliche Planung</h2>
+                <div id="budgetInfo" class="result" style="display:none;"></div>
+                <!-- Einmalige Fahrten -->
+                <h3 style="font-size:18px; margin-top:24px;">Einmalige Fahrten</h3>
+                <p>Füge hier Fahrten hinzu, die du im aktuellen Monat einmalig planst. Das Tool summiert die geplanten Kilometer
+                    und vergleicht sie mit deinem verbleibenden Monatsbudget.</p>
+                <label for="tripDistance">Streckenlänge (km)</label>
+                <input type="number" id="tripDistance" min="0" placeholder="z.&nbsp;B.&nbsp;100" />
+                <label for="tripCount">Anzahl der Fahrten</label>
+                <input type="number" id="tripCount" min="1" placeholder="z.&nbsp;B.&nbsp;2" />
+                <button id="addTrip">Hinzufügen</button>
+                <div id="tripListContainer" class="result"></div>
+                <div id="planningSummary" class="result"></div>
 
-        <!-- Abschnitt für einmalige Fahrten -->
-        <h2 style="font-size:20px; margin-top:32px;">Einmalige Fahrten</h2>
-        <p>Füge hier Fahrten hinzu, die du im aktuellen Monat einmalig planst. Das Tool summiert die geplanten Kilometer
-            und vergleicht sie mit deinem verbleibenden Monatsbudget.</p>
-        <label for="tripDistance">Streckenlänge (km)</label>
-        <input type="number" id="tripDistance" min="0" placeholder="z.&nbsp;B.&nbsp;100" />
-        <label for="tripCount">Anzahl der Fahrten</label>
-        <input type="number" id="tripCount" min="1" placeholder="z.&nbsp;B.&nbsp;2" />
-        <button id="addTrip">Hinzufügen</button>
-        <div id="tripListContainer" class="result"></div>
-        <div id="planningSummary" class="result"></div>
+                <!-- Wöchentliche Fahrten -->
+                <h3 style="font-size:18px; margin-top:32px;">Wöchentliche Fahrten</h3>
+                <p>Plane hier regelmäßige Fahrten für die nächsten Wochen. Gib die Streckenlängen und Anzahl der Fahrten pro Woche an.
+                    Zusätzlich kannst du einstellen, für wie viele Wochen du diese Routine fahren möchtest.</p>
+                <label for="weeklyWorkDistance">Streckenlänge zur Arbeit (km)</label>
+                <input type="number" id="weeklyWorkDistance" min="0" placeholder="z.&nbsp;B.&nbsp;150" />
+                <label for="weeklyWorkCount">Fahrten pro Woche zur Arbeit</label>
+                <input type="number" id="weeklyWorkCount" min="0" value="1" />
+                <label for="weeklyShopDistance">Streckenlänge zum Einkaufen (km)</label>
+                <input type="number" id="weeklyShopDistance" min="0" placeholder="z.&nbsp;B.&nbsp;30" />
+                <label for="weeklyShopCount">Fahrten pro Woche zum Einkaufen</label>
+                <input type="number" id="weeklyShopCount" min="0" value="1" />
+                <label for="weeklyWeeks">Anzahl der Wochen</label>
+                <input type="number" id="weeklyWeeks" min="1" value="4" />
+                <button id="calculateWeeklyPlan">Berechnen</button>
+                <div id="weeklyPlanResults" class="result"></div>
+            </div>
 
-        <!-- Abschnitt für wöchentliche Routinefahrten -->
-        <h2 style="font-size:20px; margin-top:32px;">Wöchentliche Fahrten</h2>
-        <p>Plane hier regelmäßige Fahrten für die nächsten Wochen. Gib die Streckenlängen und Anzahl der Fahrten pro Woche an.
-            Zusätzlich kannst du einstellen, für wie viele Wochen du diese Routine fahren möchtest.</p>
-        <label for="weeklyWorkDistance">Streckenlänge zur Arbeit (km)</label>
-        <input type="number" id="weeklyWorkDistance" min="0" placeholder="z.&nbsp;B.&nbsp;150" />
-        <label for="weeklyWorkCount">Fahrten pro Woche zur Arbeit</label>
-        <input type="number" id="weeklyWorkCount" min="0" value="1" />
-        <label for="weeklyShopDistance">Streckenlänge zum Einkaufen (km)</label>
-        <input type="number" id="weeklyShopDistance" min="0" placeholder="z.&nbsp;B.&nbsp;30" />
-        <label for="weeklyShopCount">Fahrten pro Woche zum Einkaufen</label>
-        <input type="number" id="weeklyShopCount" min="0" value="1" />
-        <label for="weeklyWeeks">Anzahl der Wochen</label>
-        <input type="number" id="weeklyWeeks" min="1" value="4" />
-        <button id="calculateWeeklyPlan">Berechnen</button>
-        <div id="weeklyPlanResults" class="result"></div>
+            <!-- Rechte Spalte: Prognose -->
+            <div class="column" id="prognoseColumn">
+                <h2 style="font-size:20px; margin-top:0;">Langfristige Prognose</h2>
+                <p>Hier kannst du ein wöchentliches Fahrmuster simulieren (z.&nbsp;B. Pendeln und Einkaufen) und prüfen, ob dein
+                    Jahresbudget bis zum Vertragsende ausreicht.  Die Berechnung basiert auf den Daten aus dem
+                    Kilometerrechner.</p>
+                <label for="workDistance">Strecke zur Arbeit pro Fahrt (Hin- und Rückweg, km)</label>
+                <input type="number" id="workDistance" min="0" placeholder="z.&nbsp;B.&nbsp;150" />
+                <label for="workCount">Fahrten zur Arbeit pro Woche</label>
+                <input type="number" id="workCount" min="0" value="1" />
+                <label for="shopDistance">Strecke zum Einkaufen pro Fahrt (Hin- und Rückweg, km)</label>
+                <input type="number" id="shopDistance" min="0" placeholder="z.&nbsp;B.&nbsp;30" />
+                <label for="shopCount">Fahrten zum Einkaufen pro Woche</label>
+                <input type="number" id="shopCount" min="0" value="1" />
+                <button id="calculatePrognosis" style="margin-top:16px;">Berechnen</button>
+                <div id="prognosisResults" class="result"></div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -269,6 +309,67 @@
             document.getElementById('weeklyPlanResults').innerHTML = resultHtml;
         }
         document.getElementById('calculateWeeklyPlan').addEventListener('click', calculateWeeklyPlan);
+
+        // Langfristige Prognose berechnen (aus dem früheren Prognose-Modul).  Diese Funktion
+        // verwendet die im Kilometerrechner gespeicherten Daten und die wöchentlichen
+        // Eingaben im rechten Bereich, um zu berechnen, ob das Jahresbudget bis zum
+        // Vertragsende ausreicht.
+        function calculatePrognosis() {
+            const workDist = parseFloat(document.getElementById('workDistance').value);
+            const workCount = parseInt(document.getElementById('workCount').value, 10);
+            const shopDist = parseFloat(document.getElementById('shopDistance').value);
+            const shopCount = parseInt(document.getElementById('shopCount').value, 10);
+            // Eingaben validieren (negative Zahlen sind nicht erlaubt)
+            if (
+                (isNaN(workDist) || workDist < 0) ||
+                (isNaN(workCount) || workCount < 0) ||
+                (isNaN(shopDist) || shopDist < 0) ||
+                (isNaN(shopCount) || shopCount < 0)
+            ) {
+                alert('Bitte gib gültige Werte für alle Felder ein.');
+                return;
+            }
+            const stored = loadStored();
+            const resultsDiv = document.getElementById('prognosisResults');
+            if (!stored || isNaN(stored.remainingYearKm) || !stored.startDate || !stored.currentDate) {
+                resultsDiv.innerHTML = '<p><em>Es fehlen erforderliche Daten. Bitte führe zuerst eine Berechnung im Kilometerrechner durch.</em></p>';
+                return;
+            }
+            // Wöchentliches Kilometerpensum
+            const weeklyTotal = (workDist * workCount) + (shopDist * shopCount);
+            if (weeklyTotal <= 0) {
+                resultsDiv.innerHTML = '<p>Mit 0&nbsp;geplanten Kilometern pro Woche bleibt dein restliches Jahresbudget von ' + stored.remainingYearKm.toFixed(0) + '&nbsp;km unverändert.</p>';
+                return;
+            }
+            // Vertragsende bestimmen (ein Jahr nach Start)
+            const startDate = new Date(stored.startDate);
+            const contractEnd = new Date(startDate);
+            contractEnd.setFullYear(contractEnd.getFullYear() + 1);
+            const currentDate = new Date(stored.currentDate);
+            const msPerDay = 24 * 60 * 60 * 1000;
+            const daysRemaining = Math.max(0, Math.floor((contractEnd - currentDate) / msPerDay));
+            const weeksRemaining = daysRemaining / 7;
+            const totalRequired = weeklyTotal * weeksRemaining;
+            const remainingYear = stored.remainingYearKm;
+            const weeksPossible = weeklyTotal > 0 ? (remainingYear / weeklyTotal) : Infinity;
+            const monthsPossible = weeksPossible / 4.345;
+            let html = '';
+            html += '<p><strong>Geplante Kilometer pro Woche:</strong> ' + weeklyTotal.toFixed(0) + '&nbsp;km</p>';
+            html += '<p><strong>Verbleibende Vertragsdauer:</strong> ' + daysRemaining + '&nbsp;Tage (≈ ' + weeksRemaining.toFixed(1) + '&nbsp;Wochen)</p>';
+            html += '<p><strong>Gesamt benötigte Kilometer bis Vertragsende:</strong> ' + totalRequired.toFixed(0) + '&nbsp;km</p>';
+            if (totalRequired <= remainingYear) {
+                const leftover = remainingYear - totalRequired;
+                html += '<p class="success">Mit diesem Fahrmuster bleibst du innerhalb deines Jahresbudgets. Du hättest noch ' + leftover.toFixed(0) + '&nbsp;km übrig.</p>';
+            } else {
+                const deficit = totalRequired - remainingYear;
+                html += '<p class="warning">Mit diesem Fahrmuster würdest du dein Jahresbudget überschreiten. Es fehlen ' + deficit.toFixed(0) + '&nbsp;km.</p>';
+            }
+            html += '<p>Dein Budget reicht bei diesem Fahrmuster für etwa ' + weeksPossible.toFixed(1) + '&nbsp;Wochen (≈ ' + monthsPossible.toFixed(1) + '&nbsp;Monate).</p>';
+            html += '<p>Es verbleiben noch ' + weeksRemaining.toFixed(1) + '&nbsp;Wochen bis zum Ende der Laufzeit.</p>';
+            resultsDiv.innerHTML = html;
+        }
+        // Event Listener für Prognose
+        document.getElementById('calculatePrognosis').addEventListener('click', calculatePrognosis);
 
         // Beim Laden der Seite Budget anzeigen
         displayBudget();
