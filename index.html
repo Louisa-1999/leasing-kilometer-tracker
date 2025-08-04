@@ -205,6 +205,8 @@
             const allowedTotalToDate = dailyLimit * daysSinceStart;
             const actualTotalToDate = currentOdometer - startOdometer;
             const differenceTotal = allowedTotalToDate - actualTotalToDate;
+            // Verbleibende Jahreskilometer: Differenz aus zugelassenen und tatsächlich gefahrenen Kilometern.
+            const remainingYearKm = differenceTotal;
 
             // Monatsbezogene Berechnung
             let monthResults = '';
@@ -240,11 +242,24 @@
                 // damit die Planungssektion darauf zugreifen kann.
                 window.remainingMonthKm = differenceMonth;
             } else {
-                // Kein Kilometerstand zu Monatsbeginn eingegeben:
-                // Hinweis für den Nutzer und Kennzeichnung, dass kein Monatsbudget berechnet werden kann.
+                // Kein Kilometerstand zu Monatsbeginn angegeben. Wir schätzen das verbleibende
+                // Monatsbudget anhand des verbleibenden Jahresbudgets und der
+                // verbleibenden Monate. So erhältst du auch ohne Eingabe des
+                // Monatsbeginn-Kilometerstands eine Orientierung.
+                const currentMonthIndex = currentDate.getMonth();
+                const monthsLeftIncludingCurrent = 12 - currentMonthIndex;
+                const divisor = monthsLeftIncludingCurrent > 0 ? monthsLeftIncludingCurrent : 1;
+                differenceMonth = remainingYearKm / divisor;
+                // Monatslimit für den aktuellen Monat (rein rechnerisch aus dem Jahreslimit)
+                const monthStartDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                const monthEndDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+                const daysInMonth = Math.floor((monthEndDate - monthStartDate) / oneDay);
+                const allowedMonthKm = dailyLimit * daysInMonth;
                 monthResults =
-                    '<p><em>Gib den Kilometerstand am Monatsanfang ein, um dein monatliches Limit zu berechnen.</em></p>';
-                window.remainingMonthKm = NaN;
+                    '<p><strong>Monatliches Limit (berechnet):</strong> ' + allowedMonthKm.toFixed(0) + '&nbsp;km</p>' +
+                    '<p><strong>Geschätztes verbleibendes Monatsbudget:</strong> ' + differenceMonth.toFixed(0) + '&nbsp;km</p>' +
+                    '<p><em>Dies ist eine Schätzung basierend auf deinem verbleibenden Jahresbudget und den verbleibenden Monaten.</em></p>';
+                window.remainingMonthKm = differenceMonth;
             }
 
             // Gesamtergebnis zusammenbauen
@@ -280,7 +295,9 @@
                     currentOdometer: document.getElementById('currentOdometer').value,
                     monthStartOdometer: document.getElementById('monthStartOdometer').value,
                     // Speichere die monatlichen Restkilometer mit ab, damit andere Seiten darauf zugreifen können
-                    remainingMonthKm: differenceMonth
+                    remainingMonthKm: differenceMonth,
+                    // Speichere die verbleibenden Jahreskilometer für Prognosen und andere Seiten
+                    remainingYearKm: remainingYearKm
                 };
                 localStorage.setItem('leasingTrackerData', JSON.stringify(dataToStore));
             } catch (e) {

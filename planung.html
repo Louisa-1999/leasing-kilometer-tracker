@@ -161,12 +161,21 @@
         function displayBudget() {
             const info = document.getElementById('budgetInfo');
             const stored = loadStored();
-            if (stored && stored.remainingMonthKm !== undefined && !isNaN(stored.remainingMonthKm)) {
-                info.style.display = 'block';
-                info.innerHTML = '<p><strong>Verbleibendes Monatsbudget:</strong> ' + stored.remainingMonthKm.toFixed(0) + '&nbsp;km</p>';
+            info.style.display = 'block';
+            if (stored) {
+                let html = '';
+                if (stored.remainingMonthKm !== undefined && !isNaN(stored.remainingMonthKm)) {
+                    html += '<p><strong>Verbleibendes Monatsbudget:</strong> ' + stored.remainingMonthKm.toFixed(0) + '&nbsp;km</p>';
+                }
+                if (stored.remainingYearKm !== undefined && !isNaN(stored.remainingYearKm)) {
+                    html += '<p><strong>Verbleibendes Jahresbudget:</strong> ' + stored.remainingYearKm.toFixed(0) + '&nbsp;km</p>';
+                }
+                if (html === '') {
+                    html = '<p><em>Keine Budgetdaten gefunden. Bitte führe zuerst eine Berechnung im Kilometerrechner durch.</em></p>';
+                }
+                info.innerHTML = html;
             } else {
-                info.style.display = 'block';
-                info.innerHTML = '<p><em>Kein Monatsbudget gefunden. Bitte führe zuerst eine Berechnung im Kilometerrechner durch.</em></p>';
+                info.innerHTML = '<p><em>Keine Budgetdaten gefunden. Bitte führe zuerst eine Berechnung im Kilometerrechner durch.</em></p>';
             }
         }
 
