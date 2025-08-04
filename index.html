@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leasing‑Kilometer Tracker</title>
+    <style>
+        /*
+          Eine schlichte Gestaltung ohne externe Abhängigkeiten.  Das Layout
+          konzentriert sich darauf, die notwendigen Eingaben klar und
+          übersichtlich darzustellen und die Berechnungsergebnisse optisch
+          hervorzuheben.  Alle Texte sind auf Deutsch gehalten, damit sich
+          deutschsprachige Nutzer sofort zurechtfinden.
+        */
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+                sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 850px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 32px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        }
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        p.intro {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        label {
+            display: block;
+            margin-top: 16px;
+            font-weight: bold;
+        }
+        input[type="number"],
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+        input[type="date"] {
+            /* Bei Datumseingaben sorgt der Zeilenumbruch für ein besseres Layout
+               auf mobilen Geräten.  */
+            line-height: 1.2;
+        }
+        button {
+            margin-top: 24px;
+            padding: 12px 20px;
+            background: #008c9e;
+            border: none;
+            border-radius: 4px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease-in-out;
+        }
+        button:hover {
+            background: #007686;
+        }
+        .result {
+            margin-top: 32px;
+            padding: 16px;
+            background: #f8fafc;
+            border: 1px solid #e6edf4;
+            border-radius: 4px;
+        }
+        .result p {
+            margin: 6px 0;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        .success {
+            color: #2d9c5b;
+        }
+        .warning {
+            color: #d9534f;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px 16px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            p.intro {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Leasing‑Kilometer Tracker</h1>
+        <p class="intro">
+            Dieses Tool hilft dir, deinen Kilometerverbrauch basierend auf
+            deinem Leasingvertrag zu verfolgen. Gib einfach die relevanten
+            Daten ein, um zu sehen, wie viele Kilometer dir insgesamt und
+            innerhalb des aktuellen Monats noch zur Verfügung stehen.
+        </p>
+
+        <label for="annualLimit">Jahreskilometer‑Limit (km)</label>
+        <input type="number" id="annualLimit" placeholder="z. B. 40000" value="40000" min="1" />
+
+        <label for="startDate">Startdatum des Leasingvertrags</label>
+        <input type="date" id="startDate" />
+
+        <label for="startOdometer">Kilometerstand zu Beginn des Leasingvertrags</label>
+        <input type="number" id="startOdometer" placeholder="Start‑Kilometerstand" min="0" />
+
+        <label for="currentDate">Aktuelles Datum</label>
+        <input type="date" id="currentDate" />
+
+        <label for="currentOdometer">Aktueller Kilometerstand</label>
+        <input type="number" id="currentOdometer" placeholder="Aktueller Kilometerstand" min="0" />
+
+        <label for="monthStartOdometer">Kilometerstand am Monatsanfang (optional)</label>
+        <input type="number" id="monthStartOdometer" placeholder="Kilometerstand zu Beginn des Monats" min="0" />
+
+        <button id="calculate">Berechnen</button>
+
+        <div id="results" class="result"></div>
+
+        <!-- Planungssektion: wird erst nach der ersten Berechnung eingeblendet -->
+        <div id="planningSection" style="display: none; margin-top: 40px;">
+            <h2 style="font-size: 20px; margin-bottom: 16px;">Fahrten planen</h2>
+            <p style="margin-bottom: 12px;">Hier kannst du Strecken hinzufügen, die du im verbleibenden Monat fahren möchtest. Das Tool errechnet automatisch, ob dein aktuelles Monatsbudget dafür ausreicht.</p>
+
+            <label for="tripDistance">Streckenlänge (km)</label>
+            <input type="number" id="tripDistance" min="0" placeholder="z.&nbsp;B.&nbsp;50" />
+
+            <label for="tripCount">Anzahl der Fahrten</label>
+            <input type="number" id="tripCount" min="1" placeholder="z.&nbsp;B.&nbsp;4" />
+
+            <button id="addTrip" style="margin-top: 12px;">Hinzufügen</button>
+
+            <div id="tripListContainer" style="margin-top: 24px;">
+                <!-- Dynamische Liste der geplanten Fahrten -->
+            </div>
+
+            <div id="planningSummary" style="margin-top: 24px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Funktion zur Berechnung der Kilometerdaten
+        function calculate() {
+            const annualLimit = parseFloat(document.getElementById('annualLimit').value);
+            const startDateVal = document.getElementById('startDate').value;
+            const currentDateVal = document.getElementById('currentDate').value;
+            const startOdometer = parseFloat(document.getElementById('startOdometer').value);
+            const currentOdometer = parseFloat(document.getElementById('currentOdometer').value);
+            const monthStartOdometerVal = document.getElementById('monthStartOdometer').value;
+
+            // Plausibilitätsprüfung der Eingaben
+            if (
+                !annualLimit ||
+                !startDateVal ||
+                !currentDateVal ||
+                isNaN(startOdometer) ||
+                isNaN(currentOdometer)
+            ) {
+                alert('Bitte fülle alle erforderlichen Felder aus.');
+                return;
+            }
+
+            const startDate = new Date(startDateVal);
+            const currentDate = new Date(currentDateVal);
+
+            if (currentDate < startDate) {
+                alert('Das aktuelle Datum muss nach dem Startdatum liegen.');
+                return;
+            }
+
+            // Berechnung der Tage seit Vertragsbeginn
+            const oneDay = 24 * 60 * 60 * 1000;
+            const daysSinceStart = Math.floor((currentDate - startDate) / oneDay);
+            const dailyLimit = annualLimit / 365;
+            const allowedTotalToDate = dailyLimit * daysSinceStart;
+            const actualTotalToDate = currentOdometer - startOdometer;
+            const differenceTotal = allowedTotalToDate - actualTotalToDate;
+
+            // Monatsbezogene Berechnung
+            let monthResults = '';
+            if (monthStartOdometerVal !== '') {
+                const monthStartOdometer = parseFloat(monthStartOdometerVal);
+                const kmUsedThisMonth = currentOdometer - monthStartOdometer;
+                // Monatsbeginn und -ende für die Tage im Monat
+                const monthStartDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                const monthEndDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+                const daysInMonth = Math.floor((monthEndDate - monthStartDate) / oneDay);
+                const allowedMonthKm = dailyLimit * daysInMonth;
+                const differenceMonth = allowedMonthKm - kmUsedThisMonth;
+                monthResults =
+                    '<p><strong>Monatliches Limit:</strong> ' +
+                    allowedMonthKm.toFixed(0) +
+                    '&nbsp;km</p>' +
+                    '<p><strong>Gefahren in diesem Monat:</strong> ' +
+                    kmUsedThisMonth.toFixed(0) +
+                    '&nbsp;km</p>' +
+                    '<p><strong>Übrige Kilometer für diesen Monat:</strong> ' +
+                    differenceMonth.toFixed(0) +
+                    '&nbsp;km</p>';
+                // Speichere die monatliche Restkilometerzahl in einem globalen Scope,
+                // damit die Planungssektion darauf zugreifen kann.
+                window.remainingMonthKm = differenceMonth;
+            } else {
+                // Kein Kilometerstand zu Monatsbeginn eingegeben:
+                // Hinweis für den Nutzer und Kennzeichnung, dass kein Monatsbudget berechnet werden kann.
+                monthResults =
+                    '<p><em>Gib den Kilometerstand am Monatsanfang ein, um dein monatliches Limit zu berechnen.</em></p>';
+                window.remainingMonthKm = NaN;
+            }
+
+            // Gesamtergebnis zusammenbauen
+            let resultHtml = '';
+            resultHtml += '<p><strong>Tage seit Vertragsbeginn:</strong> ' + daysSinceStart + '&nbsp;Tage</p>';
+            resultHtml += '<p><strong>Zugelassene Kilometer bis heute:</strong> ' + allowedTotalToDate.toFixed(0) + '&nbsp;km</p>';
+            resultHtml += '<p><strong>Gefahrene Kilometer seit Vertragsbeginn:</strong> ' + actualTotalToDate.toFixed(0) + '&nbsp;km</p>';
+            if (differenceTotal >= 0) {
+                resultHtml +=
+                    '<p class="success"><strong>Du liegst unter deinem Limit.</strong> Du kannst noch ' +
+                    differenceTotal.toFixed(0) +
+                    '&nbsp;km fahren, um im Plan zu bleiben.</p>';
+            } else {
+                resultHtml +=
+                    '<p class="warning"><strong>Du hast dein Limit überschritten.</strong> Du bist ' +
+                    Math.abs(differenceTotal).toFixed(0) +
+                    '&nbsp;km über dem Plan.</p>';
+            }
+            resultHtml += monthResults;
+
+            document.getElementById('results').innerHTML = resultHtml;
+
+            // Planungssektion zurücksetzen und einblenden/nicht einblenden
+            resetPlanningSection(monthStartOdometerVal !== '');
+
+            // Speichere aktuelle Eingaben im LocalStorage, damit sie beim nächsten Laden wieder vorhanden sind.
+            try {
+                const dataToStore = {
+                    annualLimit: document.getElementById('annualLimit').value,
+                    startDate: startDateVal,
+                    startOdometer: document.getElementById('startOdometer').value,
+                    currentDate: currentDateVal,
+                    currentOdometer: document.getElementById('currentOdometer').value,
+                    monthStartOdometer: document.getElementById('monthStartOdometer').value
+                };
+                localStorage.setItem('leasingTrackerData', JSON.stringify(dataToStore));
+            } catch (e) {
+                // Falls LocalStorage nicht verfügbar ist (z.B. im privaten Modus), ignorieren wir den Fehler.
+            }
+        }
+
+        // Liste geplanter Fahrten und monatliches Budget in globalem Scope
+        let plannedTrips = [];
+        window.remainingMonthKm = 0;
+
+        // Zeige oder verstecke die Planungssektion und setze die Planung zurück
+        function resetPlanningSection(show) {
+            const section = document.getElementById('planningSection');
+            const listContainer = document.getElementById('tripListContainer');
+            const summaryContainer = document.getElementById('planningSummary');
+            if (show) {
+                // Monatliches Restbudget verfügbar: Planung aktivieren
+                section.style.display = 'block';
+                // Leere Planungsliste
+                plannedTrips = [];
+                listContainer.innerHTML = '';
+                summaryContainer.innerHTML = '';
+            } else {
+                // Ohne Monatsstart kein Monatsbudget -> Planung ausblenden
+                section.style.display = 'none';
+                plannedTrips = [];
+                listContainer.innerHTML = '';
+                summaryContainer.innerHTML = '';
+            }
+        }
+
+        // Aktualisiert die Tabelle der geplanten Fahrten und die Zusammenfassung
+        function updatePlanningDisplay() {
+            const listContainer = document.getElementById('tripListContainer');
+            const summaryContainer = document.getElementById('planningSummary');
+            if (plannedTrips.length === 0) {
+                listContainer.innerHTML = '<p><em>Noch keine geplanten Fahrten hinzugefügt.</em></p>';
+            } else {
+                // Erzeuge eine Tabelle mit den geplanten Fahrten
+                let html = '<table style="width:100%; border-collapse: collapse;">';
+                html += '<thead><tr>';
+                html += '<th style="text-align:left; border-bottom:1px solid #ccc; padding:8px;">Strecke&nbsp;(km)</th>';
+                html += '<th style="text-align:left; border-bottom:1px solid #ccc; padding:8px;">Fahrten</th>';
+                html += '<th style="text-align:left; border-bottom:1px solid #ccc; padding:8px;">Gesamt&nbsp;(km)</th>';
+                html += '<th style="text-align:left; border-bottom:1px solid #ccc; padding:8px;"></th>';
+                html += '</tr></thead><tbody>';
+                plannedTrips.forEach((trip, index) => {
+                    html += '<tr>';
+                    html += '<td style="padding:8px; border-bottom:1px solid #eee;">' + trip.distance.toFixed(0) + '</td>';
+                    html += '<td style="padding:8px; border-bottom:1px solid #eee;">' + trip.count + '</td>';
+                    html += '<td style="padding:8px; border-bottom:1px solid #eee;">' + trip.total.toFixed(0) + '</td>';
+                    html += '<td style="padding:8px; border-bottom:1px solid #eee;"><button onclick="removeTrip(' + index + ')">Entfernen</button></td>';
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+                listContainer.innerHTML = html;
+            }
+            // Zusammenfassung berechnen
+            const totalPlanned = plannedTrips.reduce((sum, trip) => sum + trip.total, 0);
+            const remaining = window.remainingMonthKm - totalPlanned;
+            let summaryHtml = '<p><strong>Geplante Kilometer insgesamt:</strong> ' + totalPlanned.toFixed(0) + '&nbsp;km</p>';
+            if (!isNaN(window.remainingMonthKm)) {
+                summaryHtml += '<p><strong>Restliche Kilometer nach Planung:</strong> ' + remaining.toFixed(0) + '&nbsp;km</p>';
+                if (remaining >= 0) {
+                    summaryHtml += '<p class="success">Deine Planung passt in dein aktuelles Monatsbudget.</p>';
+                } else {
+                    summaryHtml += '<p class="warning">Achtung: Mit dieser Planung würdest du dein Monatsbudget überschreiten.</p>';
+                }
+            }
+            summaryContainer.innerHTML = summaryHtml;
+        }
+
+        // Fügt eine geplante Fahrt hinzu
+        function addTrip() {
+            const distanceInput = document.getElementById('tripDistance');
+            const countInput = document.getElementById('tripCount');
+            const distance = parseFloat(distanceInput.value);
+            const count = parseInt(countInput.value, 10);
+            if (isNaN(distance) || distance <= 0 || isNaN(count) || count <= 0) {
+                alert('Bitte gib gültige Werte für Streckenlänge und Anzahl der Fahrten ein.');
+                return;
+            }
+            const total = distance * count;
+            plannedTrips.push({ distance: distance, count: count, total: total });
+            // Eingabefelder zurücksetzen
+            distanceInput.value = '';
+            countInput.value = '';
+            updatePlanningDisplay();
+        }
+
+        // Entfernt einen geplanten Eintrag
+        function removeTrip(index) {
+            plannedTrips.splice(index, 1);
+            updatePlanningDisplay();
+        }
+
+        // Knöpfe für Planung verbinden
+        document.getElementById('addTrip').addEventListener('click', addTrip);
+
+        // Event Listener zum Berechnen
+        document.getElementById('calculate').addEventListener('click', calculate);
+
+        // Standardwerte vorbelegen: aktuelles Datum
+        const today = new Date();
+        document.getElementById('currentDate').valueAsDate = today;
+
+        // Beim Laden der Seite gespeicherte Daten aus dem LocalStorage holen und in die Eingabefelder einfügen.
+        (function() {
+            try {
+                const saved = localStorage.getItem('leasingTrackerData');
+                if (saved) {
+                    const obj = JSON.parse(saved);
+                    if (obj.annualLimit) document.getElementById('annualLimit').value = obj.annualLimit;
+                    if (obj.startDate) document.getElementById('startDate').value = obj.startDate;
+                    if (obj.startOdometer) document.getElementById('startOdometer').value = obj.startOdometer;
+                    if (obj.currentDate) document.getElementById('currentDate').value = obj.currentDate;
+                    if (obj.currentOdometer) document.getElementById('currentOdometer').value = obj.currentOdometer;
+                    if (obj.monthStartOdometer) document.getElementById('monthStartOdometer').value = obj.monthStartOdometer;
+                }
+            } catch (e) {
+                // LocalStorage ist möglicherweise nicht verfügbar; Fehler ignorieren.
+            }
+        })();
+    </script>
+</body>
+</html>
