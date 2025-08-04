@@ -23,19 +23,26 @@
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
                 Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
                 sans-serif;
-            background: #f0f4f8;
+            /* Hintergrund und Textfarben werden über Tailwind‑Klassen auf dem
+               <body>‑Element gesetzt (z. B. bg-gray-50, dark:bg-gray-900).  Die
+               folgenden Eigenschaften werden entfernt, damit sie die
+               Tailwind‑Einstellungen nicht überschreiben. */
             margin: 0;
             padding: 0;
-            color: #333;
         }
 
         nav {
-            background: #f8fafc;
-            border-bottom: 1px solid #e6edf4;
-            padding: 12px 24px;
+            /* Das Styling der Navigationsleiste wird über Tailwind‑Klassen
+               definiert. Hier halten wir lediglich den unteren Abstand bei,
+               damit die Section nicht zu nah an den nachfolgenden Inhalten
+               klebt. */
             margin-bottom: 24px;
         }
         nav span {
+            /* Der Farbton des Titels ist in den Tailwind‑Klassen bereits
+               festgelegt (text-blue‑600 und dark:text-blue‑400). Die Angabe
+               unten ist optional und kann entfernt werden, wird aber hier
+               belassen, da sie identisch ist. */
             color: #0366d6;
             font-weight: bold;
         }
@@ -43,7 +50,11 @@
         .container {
             max-width: 1200px;
             margin: 40px auto;
-            background: #ffffff;
+            /* Die Hintergrundfarbe und der Rahmen der Containerbox werden durch
+               Tailwind‑Klassen auf dem <div> (bg-white, dark:bg-gray-800,
+               border, dark:border-gray-700) gesteuert.  Hier definierte
+               Farben würden den Dark‑Mode überschreiben, daher werden sie
+               entfernt. */
             padding: 32px 40px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
@@ -125,8 +136,10 @@
         .result {
             margin-top: 16px;
             padding: 16px;
-            background: #f8fafc;
-            border: 1px solid #e6edf4;
+            /* Die Hintergrundfarbe und der Rahmen des Ergebnisblocks werden
+               ebenfalls durch Tailwind‑Klassen auf dem <div> gesetzt.  Die
+               folgenden Angaben würden im Dark‑Mode zu einem weißen Block
+               führen und werden deshalb entfernt. */
             border-radius: 4px;
         }
         .result p {
@@ -234,7 +247,13 @@
             <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Dark&nbsp;Mode</span>
         </label>
     </nav>
-    <div class="container mx-auto max-w-7xl px-4 py-8">
+    <!--
+      Die äußere Container‑Box erhält Tailwind‑Klassen für einen hellen Hintergrund
+      im Light‑Mode und einen dunklen Hintergrund im Dark‑Mode, sowie einen
+      Rahmen und Schatten. Dadurch erscheint die Box auf beiden Themen
+      kontrastreich und der Dark‑Mode zeigt keinen weißen Hintergrund.
+    -->
+    <div class="container mx-auto max-w-7xl px-4 py-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow">
         <div class="flex flex-col lg:flex-row gap-8">
             <!-- Linke Spalte: Eingaben zur Berechnung -->
             <div class="column w-full lg:w-1/2" id="calculatorColumn">
@@ -246,15 +265,15 @@
                     Monats noch zur Verfügung stehen.
                 </p>
                 <label for="annualLimit">Jahreskilometer‑Limit (km)</label>
-                <input type="number" id="annualLimit" placeholder="z. B. 40000" value="40000" min="1" />
+                <input type="number" id="annualLimit" placeholder="z. B. 40000" value="40000" min="1" class="w-full mt-1 p-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
                 <label for="startDate">Startdatum des Leasingvertrags</label>
-                <input type="date" id="startDate" />
+                <input type="date" id="startDate" class="w-full mt-1 p-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
                 <label for="startOdometer">Kilometerstand zu Beginn des Leasingvertrags</label>
-                <input type="number" id="startOdometer" placeholder="Start‑Kilometerstand" min="0" />
+                <input type="number" id="startOdometer" placeholder="Start‑Kilometerstand" min="0" class="w-full mt-1 p-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
                 <label for="currentDate">Aktuelles Datum</label>
-                <input type="date" id="currentDate" />
+                <input type="date" id="currentDate" class="w-full mt-1 p-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
                 <label for="currentOdometer">Aktueller Kilometerstand</label>
-                <input type="number" id="currentOdometer" placeholder="Aktueller Kilometerstand" min="0" />
+                <input type="number" id="currentOdometer" placeholder="Aktueller Kilometerstand" min="0" class="w-full mt-1 p-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
 
                 <!-- Leasingdauer: Anzahl der Monate des Leasingvertrags -->
                 <label for="leaseDuration">Leasingdauer&nbsp;(Monate)</label>
@@ -263,9 +282,9 @@
                   48&nbsp;Monate. Dadurch kann die Planung alle Monate des Vertrags
                   umfassen und nicht nur ein einzelnes Jahr.
                 -->
-                <input type="number" id="leaseDuration" min="1" placeholder="z.&nbsp;B.&nbsp;48" />
+                <input type="number" id="leaseDuration" min="1" placeholder="z.&nbsp;B.&nbsp;48" class="w-full mt-1 p-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
                 <label for="monthStartOdometer">Kilometerstand am Monatsanfang (optional)</label>
-                <input type="number" id="monthStartOdometer" placeholder="Kilometerstand zu Beginn des Monats" min="0" />
+                <input type="number" id="monthStartOdometer" placeholder="Kilometerstand zu Beginn des Monats" min="0" class="w-full mt-1 p-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
                 <button id="calculate" class="mt-6 bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-2 rounded">Berechnen</button>
 
                 <!-- Ergebnisse werden direkt unter den Eingaben angezeigt -->
