@@ -208,6 +208,14 @@
 
             // Monatsbezogene Berechnung
             let monthResults = '';
+            // Wir definieren die Variable differenceMonth im äußeren Scope,
+            // damit sie sowohl im if-Block als auch außerhalb verfügbar ist. Ohne diese
+            // Definition wäre differenceMonth außerhalb des Blocks nicht bekannt und
+            // der Wert könnte nicht im LocalStorage gespeichert werden. Standardmäßig
+            // initialisieren wir sie mit NaN, falls kein Monatskilometerstand
+            // angegeben ist.
+            let differenceMonth = NaN;
+
             if (monthStartOdometerVal !== '') {
                 const monthStartOdometer = parseFloat(monthStartOdometerVal);
                 const kmUsedThisMonth = currentOdometer - monthStartOdometer;
@@ -216,7 +224,8 @@
                 const monthEndDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
                 const daysInMonth = Math.floor((monthEndDate - monthStartDate) / oneDay);
                 const allowedMonthKm = dailyLimit * daysInMonth;
-                const differenceMonth = allowedMonthKm - kmUsedThisMonth;
+                // Berechne die Differenz für den Monat und aktualisiere die zuvor deklarierte Variable
+                differenceMonth = allowedMonthKm - kmUsedThisMonth;
                 monthResults =
                     '<p><strong>Monatliches Limit:</strong> ' +
                     allowedMonthKm.toFixed(0) +
