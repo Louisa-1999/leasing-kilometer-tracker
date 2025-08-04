@@ -113,9 +113,10 @@
          ein Prognose‑Modul, das langfristige Simulationen ermöglicht.  Die
          Gestaltung bleibt schlicht, damit sie sich in das restliche Layout
          einfügt. -->
-    <nav style="background:#f8fafc; border-bottom:1px solid #e6edf4; padding:12px 24px; margin-bottom:24px; display:flex; gap:16px;">
-        <a href="index.html" style="text-decoration:none; color:#0366d6; font-weight:bold;">Kilometerrechner</a>
-        <a href="planung.html" style="text-decoration:none; color:#0366d6;">Planung</a>
+    <!-- Einfache Navigationszeile: Da Rechner und Planung auf einer Seite vereint sind,
+         dient diese Zeile nur zur Titelanzeige. -->
+    <nav style="background:#f8fafc; border-bottom:1px solid #e6edf4; padding:12px 24px; margin-bottom:24px;">
+        <span style="color:#0366d6; font-weight:bold;">Kilometerrechner &amp; Planung</span>
     </nav>
     <div class="container">
         <h1>Leasing‑Kilometer Tracker</h1>
@@ -168,6 +169,23 @@
             </div>
 
             <div id="planningSummary" style="margin-top: 24px;"></div>
+
+            <!-- Wöchentliche Fahrten: Regelmäßige Routen für die kommenden Wochen planen -->
+            <h3 style="font-size:18px; margin-top:32px;">Wöchentliche Fahrten</h3>
+            <p style="margin-bottom:12px;">Plane hier regelmäßige Fahrten für die nächsten Wochen. Gib die Streckenlängen und Anzahl der Fahrten pro Woche an.
+                Zusätzlich kannst du einstellen, für wie viele Wochen du diese Routine fahren möchtest.</p>
+            <label for="weeklyWorkDistance">Streckenlänge zur Arbeit (km)</label>
+            <input type="number" id="weeklyWorkDistance" min="0" placeholder="z.&nbsp;B.&nbsp;150" />
+            <label for="weeklyWorkCount">Fahrten pro Woche zur Arbeit</label>
+            <input type="number" id="weeklyWorkCount" min="0" value="1" />
+            <label for="weeklyShopDistance">Streckenlänge zum Einkaufen (km)</label>
+            <input type="number" id="weeklyShopDistance" min="0" placeholder="z.&nbsp;B.&nbsp;30" />
+            <label for="weeklyShopCount">Fahrten pro Woche zum Einkaufen</label>
+            <input type="number" id="weeklyShopCount" min="0" value="1" />
+            <label for="weeklyWeeks">Anzahl der Wochen</label>
+            <input type="number" id="weeklyWeeks" min="1" value="4" />
+            <button id="calculateWeeklyPlan" style="margin-top:12px;">Berechnen</button>
+            <div id="weeklyPlanResults" style="margin-top:24px;"></div>
         </div>
     </div>
 
@@ -398,8 +416,65 @@
             updatePlanningDisplay();
         }
 
+        // Berechnet die Kilometer für regelmäßige wöchentliche Fahrten
+        function calculateWeeklyPlan() {
+            const workDist = parseFloat(document.getElementById('weeklyWorkDistance').value);
+            const workCount = parseInt(document.getElementById('weeklyWorkCount').value, 10);
+            const shopDist = parseFloat(document.getElementById('weeklyShopDistance').value);
+            const shopCount = parseInt(document.getElementById('weeklyShopCount').value, 10);
+            const weeks = parseInt(document.getElementById('weeklyWeeks').value, 10);
+            // Validierung der Eingaben: negative oder nicht numerische Werte sind nicht erlaubt
+            if (
+                isNaN(workDist) || workDist < 0 ||
+                isNaN(workCount) || workCount < 0 ||
+                isNaN(shopDist) || shopDist < 0 ||
+                isNaN(shopCount) || shopCount < 0 ||
+                isNaN(weeks) || weeks <= 0
+            ) {
+                alert('Bitte gib gültige Werte für alle Felder ein.');
+                return;
+            }
+            // Gesamtkilometer für die angegebenen Wochen berechnen
+            const totalWeekly = (workDist * workCount + shopDist * shopCount) * weeks;
+            let resultHtml = '<p><strong>Geplante Kilometer (regelmäßig):</strong> ' + totalWeekly.toFixed(0) + '&nbsp;km</p>';
+            // Versuche, das verbleibende Monatsbudget aus dem LocalStorage zu laden
+            let remainingMonth = NaN;
+            try {
+                const saved = localStorage.getItem('leasingTrackerData');
+                if (saved) {
+                    const obj = JSON.parse(saved);
+                    if (obj.remainingMonthKm !== undefined) {
+                        remainingMonth = obj.remainingMonthKm;
+                    }
+                }
+            } catch (e) {
+                // localStorage kann im privaten Modus deaktiviert sein
+            }
+            // Fallback: nutze den globalen Wert, falls er gesetzt ist
+            if (isNaN(remainingMonth) && !isNaN(window.remainingMonthKm)) {
+                remainingMonth = window.remainingMonthKm;
+            }
+            if (!isNaN(remainingMonth)) {
+                // Berücksichtige bereits geplante einmalige Fahrten
+                const totalOneTime = plannedTrips.reduce((sum, trip) => sum + trip.total, 0);
+                const remainingAfter = remainingMonth - totalWeekly - totalOneTime;
+                resultHtml += '<p><strong>Restliche Kilometer nach dieser Planung (inkl. einmaliger Fahrten):</strong> ' + remainingAfter.toFixed(0) + '&nbsp;km</p>';
+                if (remainingAfter >= 0) {
+                    resultHtml += '<p class="success">Deine regelmäßigen Fahrten passen in dein Monatsbudget.</p>';
+                } else {
+                    resultHtml += '<p class="warning">Achtung: Du würdest dein Monatsbudget mit dieser Planung überschreiten.</p>';
+                }
+            } else {
+                resultHtml += '<p><em>Keine Monatsbudgetdaten gefunden. Bitte berechne zuerst den Kilometerstand.</em></p>';
+            }
+            document.getElementById('weeklyPlanResults').innerHTML = resultHtml;
+        }
+
         // Knöpfe für Planung verbinden
         document.getElementById('addTrip').addEventListener('click', addTrip);
+
+        // Event Listener für wöchentliche Planung
+        document.getElementById('calculateWeeklyPlan').addEventListener('click', calculateWeeklyPlan);
 
         // Event Listener zum Berechnen per Klick
         document.getElementById('calculate').addEventListener('click', calculate);
