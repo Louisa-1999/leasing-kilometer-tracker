@@ -23,12 +23,30 @@
             color: #333;
         }
         .container {
-            max-width: 850px;
+            max-width: 1100px;
             margin: 40px auto;
             background: #ffffff;
             padding: 32px 40px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Neues zweispaltiges Layout für Rechner (links) und Planung (rechts).  Die
+           Flexbox sorgt für eine übersichtliche Darstellung auf größeren
+           Bildschirmen, während auf kleineren Geräten die Spalten untereinander
+           angeordnet werden. */
+        .flex-container {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+        }
+        .column {
+            flex: 1;
+        }
+        @media (max-width: 900px) {
+            .flex-container {
+                flex-direction: column;
+            }
         }
         h1 {
             text-align: center;
@@ -119,73 +137,79 @@
         <span style="color:#0366d6; font-weight:bold;">Kilometerrechner &amp; Planung</span>
     </nav>
     <div class="container">
-        <h1>Leasing‑Kilometer Tracker</h1>
-        <p class="intro">
-            Dieses Tool hilft dir, deinen Kilometerverbrauch basierend auf
-            deinem Leasingvertrag zu verfolgen. Gib einfach die relevanten
-            Daten ein, um zu sehen, wie viele Kilometer dir insgesamt und
-            innerhalb des aktuellen Monats noch zur Verfügung stehen.
-        </p>
+        <!-- Zweispaltiges Layout: Links der Rechner, rechts die Planungswerkzeuge. -->
+        <div class="flex-container">
+            <div class="column" id="calculatorColumn">
+                <h1>Leasing‑Kilometer Tracker</h1>
+                <p class="intro">
+                    Dieses Tool hilft dir, deinen Kilometerverbrauch basierend auf
+                    deinem Leasingvertrag zu verfolgen. Gib einfach die relevanten
+                    Daten ein, um zu sehen, wie viele Kilometer dir insgesamt und
+                    innerhalb des aktuellen Monats noch zur Verfügung stehen.
+                </p>
 
-        <label for="annualLimit">Jahreskilometer‑Limit (km)</label>
-        <input type="number" id="annualLimit" placeholder="z. B. 40000" value="40000" min="1" />
+                <label for="annualLimit">Jahreskilometer‑Limit (km)</label>
+                <input type="number" id="annualLimit" placeholder="z. B. 40000" value="40000" min="1" />
 
-        <label for="startDate">Startdatum des Leasingvertrags</label>
-        <input type="date" id="startDate" />
+                <label for="startDate">Startdatum des Leasingvertrags</label>
+                <input type="date" id="startDate" />
 
-        <label for="startOdometer">Kilometerstand zu Beginn des Leasingvertrags</label>
-        <input type="number" id="startOdometer" placeholder="Start‑Kilometerstand" min="0" />
+                <label for="startOdometer">Kilometerstand zu Beginn des Leasingvertrags</label>
+                <input type="number" id="startOdometer" placeholder="Start‑Kilometerstand" min="0" />
 
-        <label for="currentDate">Aktuelles Datum</label>
-        <input type="date" id="currentDate" />
+                <label for="currentDate">Aktuelles Datum</label>
+                <input type="date" id="currentDate" />
 
-        <label for="currentOdometer">Aktueller Kilometerstand</label>
-        <input type="number" id="currentOdometer" placeholder="Aktueller Kilometerstand" min="0" />
+                <label for="currentOdometer">Aktueller Kilometerstand</label>
+                <input type="number" id="currentOdometer" placeholder="Aktueller Kilometerstand" min="0" />
 
-        <label for="monthStartOdometer">Kilometerstand am Monatsanfang (optional)</label>
-        <input type="number" id="monthStartOdometer" placeholder="Kilometerstand zu Beginn des Monats" min="0" />
+                <label for="monthStartOdometer">Kilometerstand am Monatsanfang (optional)</label>
+                <input type="number" id="monthStartOdometer" placeholder="Kilometerstand zu Beginn des Monats" min="0" />
 
-        <button id="calculate">Berechnen</button>
+                <button id="calculate">Berechnen</button>
 
-        <div id="results" class="result"></div>
-
-        <!-- Planungssektion: wird erst nach der ersten Berechnung eingeblendet -->
-        <div id="planningSection" style="display: none; margin-top: 40px;">
-            <h2 style="font-size: 20px; margin-bottom: 16px;">Fahrten planen</h2>
-            <p style="margin-bottom: 12px;">Hier kannst du Strecken hinzufügen, die du im verbleibenden Monat fahren möchtest – zum Beispiel die 150&nbsp;km lange Fahrt zur Arbeit oder die 400&nbsp;km zu deiner Mutter. Das Tool errechnet automatisch, ob dein aktuelles Monatsbudget dafür ausreicht.</p>
-
-            <label for="tripDistance">Streckenlänge (km)</label>
-            <!-- Die Streckenlänge kann je nach Fahrtziel sehr unterschiedlich sein. Als Beispiel verwenden
-                 wir 150 km, um eine längere Strecke wie den Weg zur Arbeit oder zu den Eltern zu illustrieren. -->
-            <input type="number" id="tripDistance" min="0" placeholder="z.&nbsp;B.&nbsp;150&nbsp;oder&nbsp;400" />
-
-            <label for="tripCount">Anzahl der Fahrten</label>
-            <input type="number" id="tripCount" min="1" placeholder="z.&nbsp;B.&nbsp;4" />
-
-            <button id="addTrip" style="margin-top: 12px;">Hinzufügen</button>
-
-            <div id="tripListContainer" style="margin-top: 24px;">
-                <!-- Dynamische Liste der geplanten Fahrten -->
+                <div id="results" class="result"></div>
             </div>
+            <div class="column" id="planningColumn">
+                <!-- Planungssektion: wird erst nach der ersten Berechnung eingeblendet -->
+                <div id="planningSection" style="display: none;">
+                    <h2 style="font-size: 20px; margin-bottom: 16px;">Fahrten planen</h2>
+                    <p style="margin-bottom: 12px;">Hier kannst du Strecken hinzufügen, die du im verbleibenden Monat fahren möchtest – zum Beispiel die 150&nbsp;km lange Fahrt zur Arbeit oder die 400&nbsp;km zu deiner Mutter. Das Tool errechnet automatisch, ob dein aktuelles Monatsbudget dafür ausreicht.</p>
 
-            <div id="planningSummary" style="margin-top: 24px;"></div>
+                    <label for="tripDistance">Streckenlänge (km)</label>
+                    <!-- Die Streckenlänge kann je nach Fahrtziel sehr unterschiedlich sein. Als Beispiel verwenden
+                         wir 150 km, um eine längere Strecke wie den Weg zur Arbeit oder zu den Eltern zu illustrieren. -->
+                    <input type="number" id="tripDistance" min="0" placeholder="z.&nbsp;B.&nbsp;150&nbsp;oder&nbsp;400" />
 
-            <!-- Wöchentliche Fahrten: Regelmäßige Routen für die kommenden Wochen planen -->
-            <h3 style="font-size:18px; margin-top:32px;">Wöchentliche Fahrten</h3>
-            <p style="margin-bottom:12px;">Plane hier regelmäßige Fahrten für die nächsten Wochen. Gib die Streckenlängen und Anzahl der Fahrten pro Woche an.
-                Zusätzlich kannst du einstellen, für wie viele Wochen du diese Routine fahren möchtest.</p>
-            <label for="weeklyWorkDistance">Streckenlänge zur Arbeit (km)</label>
-            <input type="number" id="weeklyWorkDistance" min="0" placeholder="z.&nbsp;B.&nbsp;150" />
-            <label for="weeklyWorkCount">Fahrten pro Woche zur Arbeit</label>
-            <input type="number" id="weeklyWorkCount" min="0" value="1" />
-            <label for="weeklyShopDistance">Streckenlänge zum Einkaufen (km)</label>
-            <input type="number" id="weeklyShopDistance" min="0" placeholder="z.&nbsp;B.&nbsp;30" />
-            <label for="weeklyShopCount">Fahrten pro Woche zum Einkaufen</label>
-            <input type="number" id="weeklyShopCount" min="0" value="1" />
-            <label for="weeklyWeeks">Anzahl der Wochen</label>
-            <input type="number" id="weeklyWeeks" min="1" value="4" />
-            <button id="calculateWeeklyPlan" style="margin-top:12px;">Berechnen</button>
-            <div id="weeklyPlanResults" style="margin-top:24px;"></div>
+                    <label for="tripCount">Anzahl der Fahrten</label>
+                    <input type="number" id="tripCount" min="1" placeholder="z.&nbsp;B.&nbsp;4" />
+
+                    <button id="addTrip" style="margin-top: 12px;">Hinzufügen</button>
+
+                    <div id="tripListContainer" style="margin-top: 24px;">
+                        <!-- Dynamische Liste der geplanten Fahrten -->
+                    </div>
+
+                    <div id="planningSummary" style="margin-top: 24px;"></div>
+
+                    <!-- Wöchentliche Fahrten: Regelmäßige Routen für die kommenden Wochen planen -->
+                    <h3 style="font-size:18px; margin-top:32px;">Wöchentliche Fahrten</h3>
+                    <p style="margin-bottom:12px;">Plane hier regelmäßige Fahrten für die nächsten Wochen. Gib die Streckenlängen und Anzahl der Fahrten pro Woche an.
+                        Zusätzlich kannst du einstellen, für wie viele Wochen du diese Routine fahren möchtest.</p>
+                    <label for="weeklyWorkDistance">Streckenlänge zur Arbeit (km)</label>
+                    <input type="number" id="weeklyWorkDistance" min="0" placeholder="z.&nbsp;B.&nbsp;150" />
+                    <label for="weeklyWorkCount">Fahrten pro Woche zur Arbeit</label>
+                    <input type="number" id="weeklyWorkCount" min="0" value="1" />
+                    <label for="weeklyShopDistance">Streckenlänge zum Einkaufen (km)</label>
+                    <input type="number" id="weeklyShopDistance" min="0" placeholder="z.&nbsp;B.&nbsp;30" />
+                    <label for="weeklyShopCount">Fahrten pro Woche zum Einkaufen</label>
+                    <input type="number" id="weeklyShopCount" min="0" value="1" />
+                    <label for="weeklyWeeks">Anzahl der Wochen</label>
+                    <input type="number" id="weeklyWeeks" min="1" value="4" />
+                    <button id="calculateWeeklyPlan" style="margin-top:12px;">Berechnen</button>
+                    <div id="weeklyPlanResults" style="margin-top:24px;"></div>
+                </div>
+            </div>
         </div>
     </div>
 
